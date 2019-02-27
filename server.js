@@ -1,20 +1,25 @@
 const express = require('express');
+const mysql = require('mysql')
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const isAuth = require('./is-auth');
 const app = express();
 app.use(bodyParser.json());
 
-const db = [{
-    userName: 'ff',
-    password: 1111,
-    isAdmin: true
-},
-{
-    userName: 'Vaxo',
-    password: 0000,
-    isAdmin: false
-}]
+
+var db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'emerson59',
+    database: 'testdb'
+})
+
+db.connect((err) => {
+    if (err) {
+        throw err;
+    }
+    console.log('MySql Connected...');
+});
 
 
 app.use((req, res, next) => {
@@ -26,20 +31,24 @@ app.use((req, res, next) => {
 
 app.post('/login', (req, res) => {
     const { credentials } = req.body
-    const user = db.find(user => (user.userName == credentials.userName) &&
-        (user.password == credentials.password))
-    if (user) {
+    const sql = ` SELECT userName, isAdmin  FROM users WHERE userName = '${credentials.userName}' AND password = '${credentials.password}' `
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        const user = result[0]
+
+        user.isAdmin = Boolean(user.isAdmin)
         jwt.sign({ user }, 'tigranssecretkey', (err, token) => {
             res.json({
                 user,
                 token
             });
         });
-    } else res.json(user)
+    })
 });
 
 app.get('/profile', isAuth, (req, res) => {
     const { user } = req.token
+    // sql requests if needed  for now only
     res.json({ user })
 });
 
