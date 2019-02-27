@@ -35,8 +35,8 @@ app.post('/login', (req, res) => {
     db.query(sql, (err, result) => {
         if (err) throw err;
         const user = result[0]
-
-        user.isAdmin = Boolean(user.isAdmin)
+        console.log(user)
+         user ? user.isAdmin = Boolean(user.isAdmin) : undefined
         jwt.sign({ user }, 'tigranssecretkey', (err, token) => {
             res.json({
                 user,
@@ -48,7 +48,7 @@ app.post('/login', (req, res) => {
 
 app.get('/profile', isAuth, (req, res) => {
     const { user } = req.token
-    // sql requests if needed  for now only
+    // will add sql request at later
     res.json({ user })
 });
 
